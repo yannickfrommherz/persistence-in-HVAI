@@ -1,0 +1,11 @@
+0.0000000   7.3245324   Hallo wie sehen meine Termine am zwölften Dezember aus
+8.3748653   12.348745   Die Termine am Montag den zwölften Dezember sehen wie folgt aus
+15.945894   22.239834   Und wie sehen meine Termine am dreizehnten zwölften aus
+23.837472   32.837438   Alexa wie sehen meine Termine am dreizehnten zwölften aus 
+35.837458   44.283473   Tut mir leid das habe ich nicht verstanden
+46.287383   56.343434   Alexa wie sehen meine Termine am dreizehnten Dezember aus
+57.568956   68.349849   Am dreizehnten Dezember hast du keinen Termin
+69.344344   72.239833   Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember
+74.454543   82.343443   Klar und wie soll der Termin heißen
+83.232353   85.123232   Lerngruppe mit Peter
+87.353452   99.394834   Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen

@@ -1,0 +1,238 @@
+import pandas as pd
+import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
+import matplotlib.pyplot as plt
+from IPython.display import display
+
+def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restrict=None, beta_variants=None, drop_conf=True):
+
+    #creating a DataFrame with all opportunities that the human speaker had (as the voice assistant is incapable of making choices)
+    variation_sample = df[~(df[alternating]=="no")&(df.speaker=="S")].copy()
+
+    #specific condition for DEZEMBER alternation in VACC
+    if restrict == "yes":
+        variation_sample = variation_sample[variation_sample.setting == "Calendar"]
+
+    #organizing DataFrame, namely changing column name "lemma" to "CURRENT", as the words in it represent the current choice of the speaker
+    #which may have been influenced by previous use of one of the variants of the alternation set 
+    variation_sample.rename(columns={extract_lemma_from: "CURRENT", "interaction_id": "INTERACTION_ID", "participant_id": "HUMAN_ID"}, inplace=True)
+
+    #establishing values for potentially influencing predictor variables for each value in CURRENT
+    indices_CURRENT = variation_sample.id #extracting indices from column "id" for each CURRENT
+    indices_CURRENT.reset_index(drop=True, inplace=True) #resetting index to allow for iteration over it below
+
+    """depending on arguments, initializing empty lists to save values for potentially influencing predictor variable
+    previous_variant represents the variant, if any, that was used at the previous opportunity ("NONE" if there was no previous use within the same interaction),
+    previous_speaker represents who uttered previous_variant (if it exists), i.e., the human speaker or the voice assistant (or the confederate),
+    previous_distance respresent the distance in tokens between CURRENT and previous_variant (if it exists),
+    previous_beta_variant represents whether any non-alternating options which may influence CURRENT were uttered in the 25 words prior to CURRENT (True or False),
+    quasi-persistence represents whether the voice assistant produced at least one instance of quasi-persistence (of any kind, not just variants of the alternation set) in the preceding 25 tokens
+    (deprecated, as it lead to too many NONEs: previous_human_variant represents the variant, if any, that the human speaker used at the previous opportunity,
+    previous_VA_variant represents the variant, if any, that the voice assistant used at the previous opportunity)
+    """
+
+    #initializing empty lists to which the relevant values will be appended
+    previous_variant, previous_speaker, previous_distance, quasi_persistence, turn_length, with_conf = [], [], [], [], [], []
+    #previous_human_variant, previous_VA_variant = [], []
+
+    #for beta persistence we check whether non-alterning instances of each variant appear in the 25 words prior to CURRENT
+    #depending on the alternation set, some or all alternating variants may also non-alternate at times, hence rather than
+    #one variable, we create a dictionary with one key for each non-alternating variant and an empty list as value 
+    if not beta_variants == None:
+        previous_beta_true_or_false = {}
+        for variant in beta_variants:
+            previous_beta_true_or_false[f'previous_beta_{variant}'] = []
+
+    #iterating over the indices in variation_sample (see above)
+    for i in range(len(indices_CURRENT)):
+        
+        #extracting current interaction id and first index in that current interaction,
+        #in order to set a lower index boundary for where to look for PREVIOUS, see below
+        current_interaction_id = df[df.id==indices_CURRENT[i]].interaction_id.values[0]
+        first_index_in_current_interaction = df[df.interaction_id==current_interaction_id].id.head(1).values[0]
+        
+        last_tokens_range = range(first_index_in_current_interaction, indices_CURRENT[i]) #creating range from first index in current interaction to (but excluding) index of current CURRENT
+        last_tokens = df[df.id.isin(last_tokens_range)] #creating a sub-DataFrame with only tokens within that range 
+        
+        #for beta persistence and quasi-persistence we create a df with only the last 25 tokens (or fewer if this window oversteps interaction boundaries)
+        if indices_CURRENT[i]-25 < first_index_in_current_interaction:
+            twentyfive_last_tokens_range = range(first_index_in_current_interaction, indices_CURRENT[i])
+            twentyfive_last_tokens = df[df.id.isin(twentyfive_last_tokens_range)] 
+        else:
+            twentyfive_last_tokens_range = range(indices_CURRENT[i]-25, indices_CURRENT[i])
+            twentyfive_last_tokens = df[df.id.isin(twentyfive_last_tokens_range)]            
+
+        previous = last_tokens[~(last_tokens[alternating]=="no")].tail(1) #filtering last_tokens to only include alternating tokens and extracting the last row (tail(1))
+        
+        #separate variables for previous variant used by human and voice assistant, respectively 
+        #previous_human = last_tokens[(last_tokens[alternating]=="yes")&(last_tokens.speaker=="S")].tail(1)
+        #previous_VA = last_tokens[(last_tokens[alternating]=="yes")&(last_tokens.speaker=="A")].tail(1)    
+
+        #checking for each non-alternating variant if it appears in the last 25 tokens
+        if not beta_variants == None:
+            previous_beta = {}
+            for variant in beta_variants:
+                #filtering twentyfive last tokens to only include words that can alternate but do not do that in the given instance and extracting the last row
+                previous_beta[f"previous_beta_{variant}"] = twentyfive_last_tokens[(twentyfive_last_tokens.lemma == variant)&(twentyfive_last_tokens[alternating]=="no")].tail(1)
+
+        if len(previous) == 0: #if there is no previous alpha variant, "NONE"/0 is appended to the relevant lists 
+            previous_variant.append("NONE") 
+            previous_speaker.append("NONE") 
+            previous_distance.append(0)
+
+        else: #else the variant, the speaker and the distance are appended to the relevant lists
+            previous_variant.append(previous[extract_lemma_from].values[0])
+            previous_speaker.append(previous.speaker.values[0])
+            previous_distance.append(indices_CURRENT[i]-previous.id.values[0]) #subtracting PREVIOUS' index from CURRENT's index
+        if not beta_variants == None:
+            for variant in beta_variants:
+                if len(previous_beta[f"previous_beta_{variant}"]) == 0: #same procedure for each variant of beta variation
+                    previous_beta_true_or_false[f'previous_beta_{variant}'].append(False)
+                else:
+                    previous_beta_true_or_false[f'previous_beta_{variant}'].append(True)
+
+        #quasi-persistence
+        quasi_persistence.append((twentyfive_last_tokens["quasi-persistence"] == True).any())
+
+        #turn length
+        current_turn_id = df[df.id==indices_CURRENT[i]].turn_id.values[0]
+        turn_length.append(len(df[(df.interaction_id == current_interaction_id) & (df.turn_id == current_turn_id)]))
+
+        with_conf.append((df[df.interaction_id == current_interaction_id].speaker == "J").any())
+
+        #separate variables for previous variant used by human and voice assistant, respectively 
+        """if len(previous_human) == 0:
+            previous_human_variant.append("NONE")
+        else:
+            previous_human_variant.append(previous_human.lemma.values[0])
+        if len(previous_VA) == 0:
+            previous_VA_variant.append("NONE")
+        else:
+            previous_VA_variant.append(previous_VA.lemma.values[0])"""
+
+    #creating new columns
+    variation_sample["PREVIOUS"] = previous_variant
+    variation_sample["PREVIOUS_SPEAKER"] = previous_speaker
+    variation_sample["PREVIOUS_DISTANCE"] = previous_distance
+    variation_sample["QUASI_PERSISTENCE"] = quasi_persistence
+    variation_sample["TURN_LENGTH"] = turn_length
+    variation_sample["CONFEDERATE"] = with_conf
+
+    if not beta_variants == None:
+        for variant in beta_variants:
+            variation_sample[f"PREVIOUS_BETA_{variant.upper()}"] = previous_beta_true_or_false[f'previous_beta_{variant}']
+
+    #dropping rows where there is no PREVIOUS
+    variation_sample = variation_sample.loc[variation_sample["PREVIOUS"] != "NONE"]
+
+    #by default, rows where PREVIOUS was uttered by the confederate are dropped, unless specified otherwise
+    if drop_conf == True:
+        variation_sample = variation_sample.loc[variation_sample["PREVIOUS_SPEAKER"] != "J"]
+
+    #logarithmize distance measures, but leave 0 unchanged (otherwise it would result in infinity)
+    variation_sample["PREVIOUS_DISTANCE_LOG"] = np.where(variation_sample.PREVIOUS_DISTANCE > 0, np.log(variation_sample.PREVIOUS_DISTANCE), 0)    
+
+    #drop irrelevant columns and reorder the relevant ones
+    if not beta_variants == None:
+        columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + [col.upper() for col in list(previous_beta_true_or_false.keys())] + \
+                            ["QUASI_PERSISTENCE", "HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"] 
+    else:
+        columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + \
+                            ["QUASI_PERSISTENCE", "HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"] 
+
+    variation_sample = variation_sample.reindex(columns_to_keep, axis=1)
+
+    return variation_sample
+
+def plot_switch_rate_over_variant_proportions(df, variation_sample, alternation_set, alternating, labels= None, save_to=None, DEZEMBER=False):
+    """Function calculates 1) switch rates from one specific variant in the first slot of two successive slots (variant_B)
+    to variant A (as opposed to persistence where the variant in the second slot would be the same as the first), 
+    2) proportions of the other variant A of both variants (i.e., variant B + variant A), assessing whether the switch rate from variant B
+    is proportional to the share of the switched-to variant A (null hypothesis), or if, alternatively, for the given variant B a switch is more
+    likely than could be expected from the variant proportions or less likely (the latter indicating persistence)."""
+    
+    scatter_symbols, i = ["o", "D", "v", "^", "<", ">", "*"], 0 #defining different symbols for each variant in the scatterplot
+
+    for variant_B in alternation_set:
+
+        variants_A = [variant for variant in alternation_set if variant != variant_B]
+                
+        """Switch rates"""
+
+        """step 1: create a column with Boolean values where True means that 1) variant_B is used in PREVIOUS (may have been used by any interlocutor), 
+        but not used in CURRENT by the given speaker (this works because there only ever is one human speaker per interaction whose switching behaviour 
+        is investigated), i.e., True means that the given speaker switched from the given variant_B to variant_A.
+
+        However, first we need to filter for interactions where the given variant_B appears in PREVIOUS, because otherwise 0 could both mean that no
+        switches from variant_B took place as the human speaker always re-used that variant, but ALSO that variant_B never even appeared in PREVIOUS
+        in the first place (in that case no switch could have taken place, ergo 0 would also result"""
+        interaction_ids_with_variant_B_in_PREVIOUS = variation_sample[variation_sample.PREVIOUS == variant_B].INTERACTION_ID.unique() #identify relevant interaction ids
+        variation_sample_filtered = variation_sample[variation_sample.INTERACTION_ID.isin(interaction_ids_with_variant_B_in_PREVIOUS)] #filter variation_sample accordingly
+
+        #create Boolean column where True means that the given speaker switched from variant_B to variant_A
+        variation_sample_filtered[f"SWITCH_from_{variant_B}"] = (variation_sample_filtered.PREVIOUS == variant_B) & (variation_sample_filtered.CURRENT != variant_B)
+
+        """step 2a: calculate per-interaction absolute frequency of switches from variant_B to variant_A by grouping variation_sample_filtered by interaction and
+        adding up the column SWITCH_from_{variant_B} (which works because True equals 1)"""
+        switches_from_variant_B_per_interaction = variation_sample_filtered.groupby("INTERACTION_ID")[f"SWITCH_from_{variant_B}"].sum()
+
+        """step 2b: calculate per-interaction absolute frequency of variant_A used by the given speaker"""
+        frequency_of_variant_A_per_interaction = variation_sample.groupby("INTERACTION_ID").CURRENT.apply(lambda x: x.isin(variants_A).sum())
+
+        """step 3: dividing per-interaction frequency of switches by frequency of variant_A in the given interaction"""
+        switch_rate_per_interaction = pd.DataFrame(switches_from_variant_B_per_interaction / frequency_of_variant_A_per_interaction).reset_index()
+        switch_rate_per_interaction.columns = ["INTERACTION_ID", "SWITCH_RATE"] #rename columns for merging later
+
+        """Variant proportions (considering all alternating variants, irrespective of whether uttered by the human speaker, the voice assistant, or the confederate, if applicable)"""
+
+        """step 1a: calculate absolute frequency of variant_A per interaction, considering this time not just the given speaker, but all interlocutors"""
+
+        #if dealing with DEZEMBER alternation, #filtering setting is necessary, as variants were also annotated in Quiz interactions, but variation_sample has also been filtered like this
+        if DEZEMBER:
+            variants_all_speakers = df[(df[alternating]=="yes")&(df.setting=="Calendar")] 
+        else:
+            variants_all_speakers = df[df[alternating]=="yes"] 
+
+        frequency_of_variant_A_per_interaction = variants_all_speakers.groupby("interaction_id").lemma.apply(lambda x: x.isin(variants_A).sum())
+
+        """step 1b: calculating frequency of variant_B per interaction, again considering all interlocutors"""
+        frequency_of_variant_B_per_interaction = variants_all_speakers.groupby("interaction_id").lemma.apply(lambda x: (x == variant_B).sum())
+
+        """step 2: calculating share of variant_A of both variants per interaction"""
+        share_of_variant_A_per_interaction = pd.DataFrame(frequency_of_variant_A_per_interaction / (frequency_of_variant_B_per_interaction + frequency_of_variant_A_per_interaction)).reset_index()
+        share_of_variant_A_per_interaction.columns = ["INTERACTION_ID", "VARIANT_PROPORTIONS"] #rename columns for merging later
+        
+        """create combined DataFrame with both values for each interaction"""
+        switch_rates_df = switch_rate_per_interaction.merge(share_of_variant_A_per_interaction, on="INTERACTION_ID")
+        
+        """Plotting"""
+        
+        #create plot, configure spines, ax limits and labels
+        plt.rcParams['figure.dpi'] = 300
+        plt.rc('text', usetex=True)
+        ax = plt.subplot(111).spines[['right', 'top']].set_visible(False) #configure spines
+        plt.axis([0, 100, 0, 100]) #set axis limits
+        plt.ylabel(f'Switch rate from previous variant to other variant{"" if len(alternation_set) == 2 else "s"} in \%') #label y-axis
+        plt.xlabel(f'Share of switched-to variant{"" if len(alternation_set) == 2 else "s"} in \%') #label x-axis
+
+        if not labels: #without custom legend labels
+            #create scatter plot for current variant_B
+            plt.scatter(x=switch_rates_df["VARIANT_PROPORTIONS"]*100, 
+                        y=switch_rates_df["SWITCH_RATE"]*100, 
+                        linewidth=1, label=f"\\textit{{{variant_B}}} as previous variant", alpha=0.6, clip_on=False, marker = scatter_symbols[i])
+        else: #with custom legend labels
+            #create scatter plot for current variant_B
+            plt.scatter(x=switch_rates_df["VARIANT_PROPORTIONS"]*100, 
+                        y=switch_rates_df["SWITCH_RATE"]*100, 
+                        linewidth=1, label=f"{labels[i]} as previous variant", alpha=0.6, clip_on=False, marker = scatter_symbols[i])
+
+        i+=1 #increasing counter to get different scatter symbol next time
+
+    #plot null hypothesis 
+    x = np.linspace(0, 100, 100)
+    plt.plot(x, x + 0, "black", linestyle="dotted", label="Null hypothesis: switch rate\nproportional to variant proportions") 
+    plt.legend(loc="upper right", fontsize=6)
+
+    if save_to:
+        plt.savefig(save_to)
