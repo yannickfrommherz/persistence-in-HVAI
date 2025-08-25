@@ -1,3 +1,5 @@
+⚠️ THIS REPOSITORY IS STILL UNDER CONSTRUCTION! ⚠️
+
 # Persistence in Human-Voice Assistant Interaction
 
 This repository **soon** contains reproducible scripts and notebooks from my doctoral thesis. Note that for data protection restrictions the corpora themselves have to be requested from Ingo Siegert. However, for comprehensibility, a small dummy dataset is supplied, allowing for certain parts of the code to be executed even without the actual data.
