@@ -10,7 +10,7 @@ import json
 
 def file_creator_vacc(root_transcripts, root_speakers, output_destination):
     """Function takes paths to two directories and creates a csv file containing contents from the directories and its
-    subdirectories, namely the transcripts of interactions with Alexa, where each turn becomes one row"""
+    subdirectories, namely the transcripts of interactions with the voice assistant, where each turn becomes one row"""
     
     #creating empty df with relevant columns
     vacc = pd.DataFrame({}, columns=["id", "participant_id", "setting", "interaction_id", "turn_id", "speaker", "start", "end", "turn"])
@@ -27,8 +27,8 @@ def file_creator_vacc(root_transcripts, root_speakers, output_destination):
     
     #iterate over root_transcripts directory to append folder names as participant ids to corresponding list
     for directory in sorted(os.listdir(root_transcripts)):    
-        if directory == '.DS_Store':
-            continue    
+        if directory.startswith("."):
+            continue  
         participant_ids.append(directory)
         
     for participant_id in participant_ids:
@@ -317,34 +317,6 @@ def file_creator_rbc(root_transcripts, root_speakers, output_destination):
 
     #output df as csv file
     rbc.to_csv(output_destination)
-
-def file_creator_crowdss(corpus, output_destination):
-    
-    with open(corpus) as f:
-        
-        data = json.load(f)
-        
-    crowdss_output = pd.DataFrame({}, columns = ["id", "participant_id", "setting", "interaction_id", "turn_id", "speaker", "turn"])
-
-    interactions = list(data)
-
-    id_ = 1
-
-    for interaction in interactions:
-        for i in range(len(data[interaction]["log"])):
-            new_row = pd.Series({"id": id_,
-                                 "setting": list(set(data[interaction]["scenario"].lower().split(" "))),
-                                 "interaction_id": interaction,
-                                 "turn_id": i+1,
-                                 "speaker": f"{'S' if data[interaction]['log'][i]['role'] == 'user' else 'A'}",
-                                 "turn": data[interaction]["log"][i]["text"]})
-            crowdss_output = pd.concat([crowdss_output, new_row.to_frame().T], ignore_index=True)
-
-            id_ += 1
-
-    crowdss_output.set_index("id", inplace=True)
-
-    crowdss_output.to_csv(output_destination)
                    
 def turn_merger(file, output_destination):
     """Function takes corpus with turns from interactions with Alexa and merges consecutive turns made by the same speaker
@@ -499,33 +471,30 @@ def turn_merger(file, output_destination):
     #output df as csv file
     turns_merged.to_csv(output_destination)
 
-def TreeTagger_prep(file, txt_file_for_tagger):
-    """Functions prepares corpus file for tagging with the help of TreeTagger. 
-    First tokens are preprocessed in order to streamline tokenization (so that
-    TreeTagger won't tokenize itself which would make matching its output back to the
-    rest of the corpus impossible), then a txt file is created with one token per row
-    (required by TreeTagger) and additionally all tokens are added to a separate list
-    which delimits all tokens belonging to one turn by the element 'NEW TURN!!'"""
+def tokenise(file, txt_file_for_tagger):
+    """Function tokenises file in a streamlined way and outputs the tokens including a turn boundary
+    marker for remapping tokens to their respective turn post-tagging."""
 
     #opening the corpus and the txt file to which to write to
-    with open(file) as f, open(txt_file_for_tagger, "w", encoding="utf-8") as g:
+    with open(txt_file_for_tagger, "w", encoding="utf-8") as g:
         
         #reading in the corpus as df
-        corpus = pd.read_csv(f, index_col=0)
+        corpus = pd.read_csv(file, index_col=0)
         
-        #initializing a list to which all tokens will be appended
+        #initialising a list to which all tokens will be appended
         all_tokens = []
 
         #iterating over turns in the corpus
         for i in range(len(corpus)):
             
-            #splitting the turns into tokens
+            #splitting the turns into tokens based on whitespace
             tokens = corpus.iloc[i]["turn"].split(" ")
             
             #iterating over the tokens
             for token in tokens:
                 
-                #removing all non-alphanumerical characters in order to streamline tokenization (see reason in docstring)
+                #removing all non-alphanumerical characters in order to streamline tokenisation 
+                #so that TreeTagger won't tokenise itself which would make matching its output back to the rest of the corpus impossible
                 token = re.sub(r"[^\wÄäÖöÜüß]", "", token)
                     
                 #skipping emtpy tokens
@@ -541,64 +510,41 @@ def TreeTagger_prep(file, txt_file_for_tagger):
             #of the corpus' pieces of information which is avalaible only at turn-level (see next function) 
             all_tokens.append("NEW TURN!!")
 
-        #returning list with all tokens
-        return(all_tokens)
+    return(all_tokens)
 
-def TreeTagger(file, output_destination, location, which_corpus, which_tagger):
-    """Function takes corpus and tokenizes all turns, additionally adding metalinguistic
-    information (lemma, POS) relying on TreeTagger, finally outputting a csv file"""
+def remap(file, tagger_output, tokens_for_remapping, output_destination, which_corpus):
+    """Function remaps tagged tokens to their respective turn (i.e., it unites the tokens
+    with the rest of the corpus), outputting a csv file that is now enriched with lemmata"""
 
-    txt_file_for_tagger = "2_RNN_TT_tagged/Files/txt_file_for_tagger.txt"
-
-    #calling TreeTagger_prep which first tokenizes the data and then writes it to a txt file one token per row
-    #also outputs an additional list with all tokens
-    all_tokens = TreeTagger_prep(file, txt_file_for_tagger)
-
-    #save output of TreeTagger to this file        
-    tree_tagger_output = f"2_RNN_TT_tagged/Files/{which_tagger}_tagged.txt"
-
-    if which_tagger == "TT_spoken" or which_tagger == "TT_standard":
-
-        #run TreeTagger via command line and save its output to above file
-        os.system(f"{location} {txt_file_for_tagger} > {tree_tagger_output}")
+    corpus = pd.read_csv(file, index_col=0)
 
     #reunite tagged tokens with rest of corpus
-    with open(file) as f, open(tree_tagger_output) as g:
+    with open(tagger_output) as g:
 
         tokens_tagged = []
         
         for line in g:
             tokens_tagged.append(line.split("\t"))
 
-        corpus = pd.read_csv(f, index_col=0)
-
-        #creating empty df with relevant columns
+        #creating empty df with relevant columns, depening on corpus
         if which_corpus in ["VACC", "RBC"]:
-            corpus_per_token = pd.DataFrame({}, columns=["id", "word", "lemma", "pos", "persistence", "speaker", "interaction_id", "turn_id", "merged", "participant_id", "setting", "start", "end"])
+            corpus_per_token = pd.DataFrame({}, columns=["id", "word", "lemma", "persistence", "speaker", "interaction_id", "turn_id", "merged", "participant_id", "setting", "start", "end"])
         elif which_corpus == "VACW":
-            corpus_per_token = pd.DataFrame({}, columns=["id", "word", "lemma", "pos", "persistence", "speaker", "interaction_id", "turn_id", "start"])
-        elif which_corpus == "CROWDSS":
-            corpus_per_token = pd.DataFrame({}, columns=["id", "word", "lemma", "pos", "persistence", "speaker", "interaction_id", "turn_id", "setting"])            
+            corpus_per_token = pd.DataFrame({}, columns=["id", "word", "lemma", "persistence", "speaker", "interaction_id", "turn_id", "start"])
 
         #initializing token_id
         token_id = 1
-        #initializing indices for all_tokens (j) and tokens_tagged (k)
+        #initializing indices for tokens_for_remapping (j) and tokens_tagged (k)
         j = 0
-        #tokens_tagged has an own index because it contains fewer elements than all_tokens
+        #tokens_tagged has an own index because it contains fewer elements than tokens_for_remapping
         #as it does not contain "NEW TURN!!" markers
         k = 0
 
-        for i in range(len(all_tokens)):
+        for i in range(len(tokens_for_remapping)):
 
-            #progress bar
-            one_hundredth = int(len(all_tokens)/100)
-            if i in range(0, len(all_tokens), one_hundredth):
-                sys.stdout.write('\r')
-                sys.stdout.write("[%-100s] %d%%" % ('='*int(i/one_hundredth), i/one_hundredth))
-
-            #if a new turn begins (marked by an element "NEW TURN!!", see TreeTagger_prep function)...
-            if all_tokens[i] == "NEW TURN!!":
-                #the index for all_tokens is increased by 1
+            #if a new turn begins (marked by an element "NEW TURN!!")...
+            if tokens_for_remapping[i] == "NEW TURN!!":
+                #the index for tokens_for_remapping is increased by 1
                 j += 1
                 #and the rest of the iteration is skipped
                 continue
@@ -620,9 +566,8 @@ def TreeTagger(file, output_destination, location, which_corpus, which_tagger):
 
                 #appending row to new df
                 new_row = pd.Series({"id": token_id,
-                                    "word": all_tokens[i],
+                                    "word": tokens_for_remapping[i],
                                     "lemma": tokens_tagged[k][2].rstrip(),
-                                    "pos": tokens_tagged[k][1],
                                     "speaker": speaker,
                                     "interaction_id": interaction_id,
                                     "turn_id": turn_id,
@@ -631,6 +576,7 @@ def TreeTagger(file, output_destination, location, which_corpus, which_tagger):
                                     "setting": setting,
                                     "start": start,
                                     "end": end})
+                
                 corpus_per_token = pd.concat([corpus_per_token, new_row.to_frame().T], ignore_index=True)
                 
             #else if corpus is VACW
@@ -640,9 +586,8 @@ def TreeTagger(file, output_destination, location, which_corpus, which_tagger):
 
                 #appending row to new df
                 new_row = pd.Series({"id": token_id,
-                                    "word": all_tokens[i],
+                                    "word": tokens_for_remapping[i],
                                     "lemma": tokens_tagged[k][2].rstrip(),
-                                    "pos": tokens_tagged[k][1],
                                     "speaker": speaker,
                                     "interaction_id": interaction_id,
                                     "turn_id": turn_id,
@@ -662,9 +607,8 @@ def TreeTagger(file, output_destination, location, which_corpus, which_tagger):
 
                 #appending row to new df
                 new_row = pd.Series({"id": token_id,
-                                    "word": all_tokens[i],
+                                    "word": tokens_for_remapping[i],
                                     "lemma": tokens_tagged[k][2].rstrip(),
-                                    "pos": tokens_tagged[k][1],
                                     "speaker": speaker,
                                     "interaction_id": interaction_id,
                                     "turn_id": turn_id,
@@ -675,32 +619,59 @@ def TreeTagger(file, output_destination, location, which_corpus, which_tagger):
                                     "end": end})
                 corpus_per_token = pd.concat([corpus_per_token, new_row.to_frame().T], ignore_index=True)
 
-            elif which_corpus == "CROWDSS":
-
-                setting = corpus.iloc[j]["setting"]
-
-                #appending row to new df
-                new_row = pd.Series({"id": token_id,
-                                    "word": all_tokens[i],
-                                    "lemma": tokens_tagged[k][2].rstrip(),
-                                    "pos": tokens_tagged[k][1],
-                                    "speaker": speaker,
-                                    "interaction_id": interaction_id,
-                                    "turn_id": turn_id,
-                                    "setting": setting})
-                corpus_per_token = pd.concat([corpus_per_token, new_row.to_frame().T], ignore_index=True)
-                
-            
-
             #increasing token_id by 1
             token_id += 1
             #increasing index for tokens_tagged by 1 
             k += 1
-
-
 
     #resetting index to "id" column
     corpus_per_token.set_index("id", inplace=True)
 
     #output df as csv file
     corpus_per_token.to_csv(output_destination)
+
+def ngrammer(file, which_corpus):
+    """Function creates bi-, tri-, and quadrigram-based corpora and saves them in separate files"""
+    number_name = {2: "bigrams", 3: "trigrams", 4: "quadrigrams"}
+
+    for n in range(2,5):
+        print(number_name[n])
+        
+        corpus = pd.read_csv(file, sep=",", na_filter=False)
+        corpus[["word", "lemma"]] = corpus[["word", "lemma"]].astype(str)
+        
+        assert corpus.lemma.isna().sum() + corpus.word.isna().sum() == 0
+
+        #adding an extra column with really unique turn ids (rather than only unique within an interaction) for correct grouping below
+        unique_turn_ids, counter = [], 1
+        for i in range(len(corpus)):
+            if i == len(corpus)-1:
+                unique_turn_ids.append(counter)
+                break
+            if corpus.loc[i, "turn_id"] == corpus.loc[i+1, "turn_id"]:
+                unique_turn_ids.append(counter)
+            else:
+                unique_turn_ids.append(counter)
+                counter+=1
+
+        corpus["unique_turn_id"] = unique_turn_ids
+
+        corpus["word_ngram"] = ""
+        corpus["lemma_ngram"] = ""
+
+        #Creating ngrams of desired length, grouped by level 2, such that ngrams do not overstep level 2 (e.g., turn) boundaries
+        for i in range(0, n * -1, -1):
+            corpus["word_ngram"] = (corpus["word_ngram"] + " " + corpus.groupby("unique_turn_id")["word"].shift(i)).str.strip()
+            corpus["lemma_ngram"] = (corpus["lemma_ngram"] + " " + corpus.groupby("unique_turn_id")["lemma"].shift(i)).str.strip()
+
+        #Overwriting tokens column with the "ngrams" column and dropping the "ngrams" column
+        corpus["word"] = corpus["word_ngram"]
+        corpus = corpus.drop(columns=["word_ngram"])
+        corpus["lemma"] = corpus["lemma_ngram"]
+        corpus = corpus.drop(columns=["lemma_ngram"])
+
+        #Overwriting supercorpus with supercorpus_ngram with dropped NaN values
+        #(which came into being at level 2 boundaries where the length of the ngram < n)
+        corpus = corpus.dropna()
+
+        corpus.to_csv(f"2_Preprocessed/RNN_{which_corpus}_{number_name[n]}.csv", index=False)

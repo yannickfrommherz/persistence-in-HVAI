@@ -1,0 +1,161 @@
+id,participant_id,setting,interaction_id,turn_id,speaker,start,end,turn,merged
+1,Dummy_participant_1,Calendar,1,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+2,Dummy_participant_1,Calendar,1,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+3,Dummy_participant_1,Calendar,1,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+4,Dummy_participant_1,Calendar,1,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+5,Dummy_participant_1,Calendar,1,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+6,Dummy_participant_1,Calendar,1,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+7,Dummy_participant_1,Calendar,1,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+8,Dummy_participant_1,Calendar,1,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+9,Dummy_participant_1,Calendar,1,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+10,Dummy_participant_1,Calendar,1,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+11,Dummy_participant_1,Calendar,2,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+12,Dummy_participant_1,Calendar,2,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+13,Dummy_participant_1,Calendar,2,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+14,Dummy_participant_1,Calendar,2,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+15,Dummy_participant_1,Calendar,2,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+16,Dummy_participant_1,Calendar,2,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+17,Dummy_participant_1,Calendar,2,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+18,Dummy_participant_1,Calendar,2,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+19,Dummy_participant_1,Calendar,2,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+20,Dummy_participant_1,Calendar,2,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+21,Dummy_participant_1,Quiz,3,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+22,Dummy_participant_1,Quiz,3,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+23,Dummy_participant_1,Quiz,3,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+24,Dummy_participant_1,Quiz,3,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+25,Dummy_participant_1,Quiz,3,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+26,Dummy_participant_1,Quiz,3,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+27,Dummy_participant_1,Quiz,3,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+28,Dummy_participant_1,Quiz,3,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+29,Dummy_participant_1,Quiz,3,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+30,Dummy_participant_1,Quiz,3,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+31,Dummy_participant_1,Quiz,4,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+32,Dummy_participant_1,Quiz,4,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+33,Dummy_participant_1,Quiz,4,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+34,Dummy_participant_1,Quiz,4,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+35,Dummy_participant_1,Quiz,4,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+36,Dummy_participant_1,Quiz,4,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+37,Dummy_participant_1,Quiz,4,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+38,Dummy_participant_1,Quiz,4,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+39,Dummy_participant_1,Quiz,4,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+40,Dummy_participant_1,Quiz,4,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+41,Dummy_participant_2,Calendar,5,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+42,Dummy_participant_2,Calendar,5,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+43,Dummy_participant_2,Calendar,5,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+44,Dummy_participant_2,Calendar,5,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+45,Dummy_participant_2,Calendar,5,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+46,Dummy_participant_2,Calendar,5,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+47,Dummy_participant_2,Calendar,5,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+48,Dummy_participant_2,Calendar,5,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+49,Dummy_participant_2,Calendar,5,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+50,Dummy_participant_2,Calendar,5,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+51,Dummy_participant_2,Calendar,6,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+52,Dummy_participant_2,Calendar,6,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+53,Dummy_participant_2,Calendar,6,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+54,Dummy_participant_2,Calendar,6,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+55,Dummy_participant_2,Calendar,6,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+56,Dummy_participant_2,Calendar,6,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+57,Dummy_participant_2,Calendar,6,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+58,Dummy_participant_2,Calendar,6,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+59,Dummy_participant_2,Calendar,6,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+60,Dummy_participant_2,Calendar,6,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+61,Dummy_participant_2,Quiz,7,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+62,Dummy_participant_2,Quiz,7,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+63,Dummy_participant_2,Quiz,7,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+64,Dummy_participant_2,Quiz,7,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+65,Dummy_participant_2,Quiz,7,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+66,Dummy_participant_2,Quiz,7,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+67,Dummy_participant_2,Quiz,7,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+68,Dummy_participant_2,Quiz,7,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+69,Dummy_participant_2,Quiz,7,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+70,Dummy_participant_2,Quiz,7,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+71,Dummy_participant_2,Quiz,8,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+72,Dummy_participant_2,Quiz,8,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+73,Dummy_participant_2,Quiz,8,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+74,Dummy_participant_2,Quiz,8,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+75,Dummy_participant_2,Quiz,8,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+76,Dummy_participant_2,Quiz,8,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+77,Dummy_participant_2,Quiz,8,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+78,Dummy_participant_2,Quiz,8,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+79,Dummy_participant_2,Quiz,8,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+80,Dummy_participant_2,Quiz,8,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+81,Dummy_participant_3,Calendar,9,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+82,Dummy_participant_3,Calendar,9,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+83,Dummy_participant_3,Calendar,9,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+84,Dummy_participant_3,Calendar,9,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+85,Dummy_participant_3,Calendar,9,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+86,Dummy_participant_3,Calendar,9,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+87,Dummy_participant_3,Calendar,9,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+88,Dummy_participant_3,Calendar,9,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+89,Dummy_participant_3,Calendar,9,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+90,Dummy_participant_3,Calendar,9,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+91,Dummy_participant_3,Calendar,10,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+92,Dummy_participant_3,Calendar,10,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+93,Dummy_participant_3,Calendar,10,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+94,Dummy_participant_3,Calendar,10,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+95,Dummy_participant_3,Calendar,10,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+96,Dummy_participant_3,Calendar,10,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+97,Dummy_participant_3,Calendar,10,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+98,Dummy_participant_3,Calendar,10,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+99,Dummy_participant_3,Calendar,10,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+100,Dummy_participant_3,Calendar,10,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+101,Dummy_participant_3,Quiz,11,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+102,Dummy_participant_3,Quiz,11,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+103,Dummy_participant_3,Quiz,11,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+104,Dummy_participant_3,Quiz,11,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+105,Dummy_participant_3,Quiz,11,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+106,Dummy_participant_3,Quiz,11,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+107,Dummy_participant_3,Quiz,11,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+108,Dummy_participant_3,Quiz,11,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+109,Dummy_participant_3,Quiz,11,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+110,Dummy_participant_3,Quiz,11,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+111,Dummy_participant_3,Quiz,12,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+112,Dummy_participant_3,Quiz,12,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+113,Dummy_participant_3,Quiz,12,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+114,Dummy_participant_3,Quiz,12,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+115,Dummy_participant_3,Quiz,12,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+116,Dummy_participant_3,Quiz,12,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+117,Dummy_participant_3,Quiz,12,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+118,Dummy_participant_3,Quiz,12,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+119,Dummy_participant_3,Quiz,12,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+120,Dummy_participant_3,Quiz,12,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+121,Dummy_participant_4,Calendar,13,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+122,Dummy_participant_4,Calendar,13,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+123,Dummy_participant_4,Calendar,13,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+124,Dummy_participant_4,Calendar,13,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+125,Dummy_participant_4,Calendar,13,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+126,Dummy_participant_4,Calendar,13,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+127,Dummy_participant_4,Calendar,13,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+128,Dummy_participant_4,Calendar,13,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+129,Dummy_participant_4,Calendar,13,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+130,Dummy_participant_4,Calendar,13,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+131,Dummy_participant_4,Calendar,14,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+132,Dummy_participant_4,Calendar,14,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+133,Dummy_participant_4,Calendar,14,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+134,Dummy_participant_4,Calendar,14,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+135,Dummy_participant_4,Calendar,14,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+136,Dummy_participant_4,Calendar,14,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+137,Dummy_participant_4,Calendar,14,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+138,Dummy_participant_4,Calendar,14,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+139,Dummy_participant_4,Calendar,14,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+140,Dummy_participant_4,Calendar,14,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+141,Dummy_participant_4,Quiz,15,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+142,Dummy_participant_4,Quiz,15,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+143,Dummy_participant_4,Quiz,15,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+144,Dummy_participant_4,Quiz,15,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+145,Dummy_participant_4,Quiz,15,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+146,Dummy_participant_4,Quiz,15,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+147,Dummy_participant_4,Quiz,15,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+148,Dummy_participant_4,Quiz,15,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+149,Dummy_participant_4,Quiz,15,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+150,Dummy_participant_4,Quiz,15,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
+151,Dummy_participant_4,Quiz,16,1,S,0.0,7.3245324,Hallo wie sehen meine Termine am zwölften Dezember aus,no
+152,Dummy_participant_4,Quiz,16,2,A,8.3748653,12.348745,Die Termine am Montag den zwölften Dezember sehen wie folgt aus,no
+153,Dummy_participant_4,Quiz,16,3,S,15.945894,32.837438,Und wie sehen meine Termine am dreizehnten zwölften aus Alexa wie sehen meine Termine am dreizehnten zwölften aus,yes
+154,Dummy_participant_4,Quiz,16,4,A,35.837458,44.283473,Tut mir leid das habe ich nicht verstanden,no
+155,Dummy_participant_4,Quiz,16,5,S,46.287383,56.343434,Alexa wie sehen meine Termine am dreizehnten Dezember aus,no
+156,Dummy_participant_4,Quiz,16,6,A,57.568956,68.349849,Am dreizehnten Dezember hast du keinen Termin,no
+157,Dummy_participant_4,Quiz,16,7,S,69.344344,72.239833,Alexa bitte erstelle mir einen Termin um neun Uhr am dreizehnten Dezember,no
+158,Dummy_participant_4,Quiz,16,8,A,74.454543,82.343443,Klar und wie soll der Termin heißen,no
+159,Dummy_participant_4,Quiz,16,9,S,83.232353,85.123232,Lerngruppe mit Peter,no
+160,Dummy_participant_4,Quiz,16,10,A,87.353452,99.394834,Alles klar dein Termin am dreizehnten Dezember um neun Uhr namens Lerngruppe mit Peter ist eingetragen,no
