@@ -2,7 +2,7 @@ import pandas as pd
 from tqdm import tqdm
 
 #flagging potentially persistent tokens (word forms, lemmas etc. in any kind of n-gram)
-def persistence_tagger(corpus, which_corpus, levels, output_destination, instructions=[], stopwords=[], speaker_A="A", speaker_B="S"):
+def tagger(corpus, which_corpus, levels, output_destination, instructions=[], stopwords=[], speaker_A="A", speaker_B="S"):
     """Function tags all tokens/ngrams within an interaction which are used by speaker A (by default, the voice assistant, but it can also be the
     human speaker if instances of quasi-persistence are to be tagged) and are subsequently re-used by speaker B (by default, the human speaker)
     within a range of 150 words (Szmrecsanyi, 2006), iff the given tokens/ngrams had not been introduced by speaker B in the preceding 150 words,
@@ -158,8 +158,178 @@ def persistence_tagger(corpus, which_corpus, levels, output_destination, instruc
                         corpus.loc[following_window[(following_window.speaker == speaker_B) & 
                                                 (following_window[level] == token)].index, f"persistence_{level}"] = f"PER_SPP: {token}"
 
+        #in case no cases of persistence have been tagged, the corresponding column still needs to be created as downstream processing relies on such a column, even if empty
+        if not f"persistence_{level}" in corpus.columns:
+            corpus[f"persistence_{level}"] = pd.NA
+        
+        #output number of tagged cases of persistence
         print(f"Persistent SPP's on {level} level:", len(corpus[corpus[f"persistence_{level}"].fillna("").str.startswith("PER_SPP")]))
+
 
     #saving DataFrame as csv file
     corpus.to_csv(output_destination, index=False)
+
+def combiner(path_to_input, path_to_output, which_corpus):
+    """Function reads separately constructed files with uni-, bi-, tri- and quadrigrams and unites all information into one file."""
+
+    #opening and reading the files separately
+    uni = pd.read_csv(f"{path_to_input}/Persistence_{which_corpus}_unigrams.csv", sep=",", na_filter=False, low_memory=False)
+    bi = pd.read_csv(f"{path_to_input}/Persistence_{which_corpus}_bigrams.csv", sep=",", na_filter=False, low_memory=False)
+    tri = pd.read_csv(f"{path_to_input}/Persistence_{which_corpus}_trigrams.csv", sep=",", na_filter=False, low_memory=False)
+    quadri = pd.read_csv(f"{path_to_input}/Persistence_{which_corpus}_quadrigrams.csv", sep=",", na_filter=False, low_memory=False)
+
+    #uniting the data happens in the DataFrame "uni" in four new columns
+    #the columns are initialized as strings, because in case of overlapping tags, the second (and third, ...) tag
+    #on the same ngram is concatenated with the first one
+    uni["persistence_unigrams_lemma"] = ""
+    uni["persistence_bigrams_lemma"] = ""
+    uni["persistence_trigrams_lemma"] = ""
+    uni["persistence_quadrigrams_lemma"] = ""
+
+    #creating a set of interaction ids...
+    interaction_ids = uni["interaction_id"].unique()
+
+    #in case of RBC instructions are also part of the corpus, but we disregard them as they were not tagged for persistences
+    if which_corpus == "RBC":
+        interaction_ids = [id_ for id_ in interaction_ids if not id_.startswith("Instructions")]
+
+    #...to iterate over
+    for interaction_id in tqdm(interaction_ids):
+
+        #creating DataFrames containing only one interaction
+        interaction_df_uni = uni[uni["interaction_id"] == interaction_id]
+        interaction_df_bi = bi[bi["interaction_id"] == interaction_id]
+        interaction_df_tri = tri[tri["interaction_id"] == interaction_id]
+        interaction_df_quadri = quadri[quadri["interaction_id"] == interaction_id]
+
+        #creating a set of turn ids...
+        turn_ids = interaction_df_uni["turn_id"].unique()
+        
+        #...to iterate over
+        for turn_id in turn_ids:
+
+            #creating DataFrames containing only one turn
+            turn_df_uni = interaction_df_uni[interaction_df_uni["turn_id"] == turn_id]
+            turn_df_bi = interaction_df_bi[interaction_df_bi["turn_id"] == turn_id]
+            turn_df_tri = interaction_df_tri[interaction_df_tri["turn_id"] == turn_id]
+            turn_df_quadri = interaction_df_quadri[interaction_df_quadri["turn_id"] == turn_id] 
+            
+            #if any value in the column "persistence_lemma" in the unigrams DataFrame is of type string (empty values are NaN/float),
+            #then there are persistence tags to add the to the unified DataFrame
+            if any([isinstance(elem, str) for elem in turn_df_uni["persistence_lemma"].unique()]):
+                #in this case we iterate over the turn_df...
+                for i in range(len(turn_df_uni)):
+
+                    #...and check if a persistence has been tagged for the given token
+                    if str(turn_df_uni.iloc[i]["persistence_lemma"]).startswith("PER"):
+                        #if yes, we save the current index and the token
+                        index = turn_df_uni.iloc[i].name
+                        token = turn_df_uni.iloc[i]["lemma"]
+                        #depending on whether it is an FPP/SPP, we write this information into the new column "persistence_unigrams_lemma"
+                        if str(turn_df_uni.iloc[i]["persistence_lemma"]).startswith("PER_FPP"):
+                            uni.loc[index, "persistence_unigrams_lemma"] = f"FPP_{token}" 
+                        else: 
+                            uni.loc[index, "persistence_unigrams_lemma"] = f"SPP_{token}"
+            
+            #if any value in the column "persistence_lemma" in the bigrams DataFrame is of type string (empty values are NaN/float),
+            #then there are persistence tags to add the to the unified DataFrame
+            if any([isinstance(elem, str) for elem in turn_df_bi["persistence_lemma"].unique()]):
+                #in this case we iterate over the turn_df...
+                for i in range(len(turn_df_bi)):
+                
+                    #...and check if a persistence has been tagged for the given token
+                    if str(turn_df_bi.iloc[i]["persistence_lemma"]).startswith("PER"):
+                        #if yes, we save the current index (from uni, since this is where we'll write persistence information) and the token
+                        index = turn_df_uni.iloc[i].name
+                        token = turn_df_bi.iloc[i]["lemma"]
+                        #the tokens between this DataFrame and the unified one may not be aligned
+                        #due to turns consisting of fewer tokens than the ngram of the respective DataFrame 
+                        #in which case these DataFrames contain fewer rows and hence the alignment is disturbed
+                        #therefore we check whether the first word of the current ngram is the same as the word at the same index in the unified DataFrame
+                        if token.split()[0]!= uni.loc[index, "lemma"]:
+                            print(turn_df_uni.iloc[i], turn_df_bi.iloc[i])
+                            raise Exception("Something's off!")
+                        #depending on whether it is an FPP/SPP, we write this information  
+                        #at the given index (AND THE NEXT ONE, since the unified DataFrame is unigram-based)
+                        #into the new column "persistence_bigrams_lemma", adding a final semicolon in case 
+                        #overlapping bigram tags are concatenated to it in the next iteration
+                        if str(turn_df_bi.iloc[i]["persistence_lemma"]).startswith("PER_FPP"):
+                            uni.loc[index, "persistence_bigrams_lemma"] += f"FPP_start_{token}; " 
+                            uni.loc[index+1, "persistence_bigrams_lemma"] += f"FPP_end_{token}; "
+                        else: 
+                            uni.loc[index, "persistence_bigrams_lemma"] += f"SPP_start_{token}; " 
+                            uni.loc[index+1, "persistence_bigrams_lemma"] += f"SPP_end_{token}; "
+
+            #if any value in the column "persistence_lemma" in the trigrams DataFrame is of type string (empty values are NaN/float),
+            #then there are persistence tags to add the to the unified DataFrame
+            if any([isinstance(elem, str) for elem in turn_df_tri["persistence_lemma"].unique()]):
+                #in this case we iterate over the turn_df...
+                for i in range(len(turn_df_tri)):
+                    #...and check if a persistence has been tagged for the given token
+                    if str(turn_df_tri.iloc[i]["persistence_lemma"]).startswith("PER"):
+                        #if yes, we save the current index (from uni, since this is where we'll write persistence information) and the token
+                        index = turn_df_uni.iloc[i].name
+                        token = turn_df_tri.iloc[i]["lemma"]
+                        #the tokens between this DataFrame and the unified one may not be aligned
+                        #due to turns consisting of fewer tokens than the ngram of the respective DataFrame 
+                        #in which case these DataFrames contain fewer rows and hence the alignment is disturbed
+                        #therefore we check whether the first word of the current ngram is the same as the word at the same index in the unified DataFrame
+                        if token.split()[0]!= uni.loc[index, "lemma"]:
+                            print(turn_df_uni.iloc[i], turn_df_tri.iloc[i])
+                            raise Exception("Something's off!")
+                        #depending on whether it is an FPP/SPP, we write this information  
+                        #at the given index (AND THE NEXT TWO, since the unified DataFrame is unigram-based)
+                        #into the new column "persistence_trigrams_lemma", adding a final semicolon in case 
+                        #overlapping trigram tags are concatenated to it in the next iteration
+                        if str(turn_df_tri.iloc[i]["persistence_lemma"]).startswith("PER_FPP"):
+                            uni.loc[index, "persistence_trigrams_lemma"] += f"FPP_start_{token}; " 
+                            uni.loc[index+1, "persistence_trigrams_lemma"] += f"FPP_inside_{token}; " 
+                            uni.loc[index+2, "persistence_trigrams_lemma"] += f"FPP_end_{token}; " 
+                        else: 
+                            uni.loc[index, "persistence_trigrams_lemma"] += f"SPP_start_{token}; " 
+                            uni.loc[index+1, "persistence_trigrams_lemma"] += f"SPP_inside_{token}; " 
+                            uni.loc[index+2, "persistence_trigrams_lemma"] += f"SPP_end_{token}; " 
+
+            #if any value in the column "persistence_lemma" in the quadrigrams DataFrame is of type string (empty values are NaN/float),
+            #then there are persistence tags to add the to the unified DataFrame
+            if any([isinstance(elem, str) for elem in turn_df_quadri["persistence_lemma"].unique()]):
+                #in this case we iterate over the turn_df..
+                for i in range(len(turn_df_quadri)):
+                    #...and check if a persistence has been tagged for the given token
+                    if str(turn_df_quadri.iloc[i]["persistence_lemma"]).startswith("PER"):
+                        #if yes, we save the current index (from uni, since this is where we'll write persistence information) and the token
+                        index = turn_df_uni.iloc[i].name
+                        token = turn_df_quadri.iloc[i]["lemma"]
+                        #the tokens between this DataFrame and the unified one may not be aligned
+                        #due to turns consisting of fewer tokens than the ngram of the respective DataFrame 
+                        #in which case these DataFrames contain fewer rows and hence the alignment is disturbed
+                        #therefore we check whether the first word of the current ngram is the same as the word at the same index in the unified DataFrame
+                        if token.split()[0]!= uni.loc[index, "lemma"]:
+                            print(turn_df_uni.iloc[i], turn_df_quadri.iloc[i])
+                            raise Exception("Something's off!")
+                        #depending on whether it is an FPP/SPP, we write this information  
+                        #at the given index (AND THE NEXT THREE, since the unified DataFrame is unigram-based)
+                        #into the new column "persistence_quadrigrams_lemma", adding a final semicolon in case 
+                        #overlapping quadrigram tags are concatenated to it in the next iteration
+                        if str(turn_df_quadri.iloc[i]["persistence_lemma"]).startswith("PER_FPP"):
+                            uni.loc[index, "persistence_quadrigrams_lemma"] += f"FPP_start_{token}; " 
+                            uni.loc[index+1, "persistence_quadrigrams_lemma"] += f"FPP_inside_{token}; " 
+                            uni.loc[index+2, "persistence_quadrigrams_lemma"] += f"FPP_inside_{token}; "
+                            uni.loc[index+3, "persistence_quadrigrams_lemma"] += f"FPP_end_{token}; " 
+                        else: 
+                            uni.loc[index, "persistence_quadrigrams_lemma"] += f"SPP_start_{token}; " 
+                            uni.loc[index+1, "persistence_quadrigrams_lemma"] += f"SPP_inside_{token}; "
+                            uni.loc[index+2, "persistence_quadrigrams_lemma"] += f"SPP_inside_{token}; " 
+                            uni.loc[index+3, "persistence_quadrigrams_lemma"] += f"SPP_end_{token}; " 
+
+    #stripping final semicola where no (further) overlapping tag was concatenated
+    uni["persistence_bigrams_lemma"] = uni["persistence_bigrams_lemma"].str.rstrip("; ")
+    uni["persistence_trigrams_lemma"] = uni["persistence_trigrams_lemma"].str.rstrip("; ")
+    uni["persistence_quadrigrams_lemma"] = uni["persistence_quadrigrams_lemma"].str.rstrip("; ")
+
+    #dropping the "persistence" column as this information is now preserved in the "persistence_unigrams_lemma" column
+    uni.drop(columns=["persistence_lemma"], inplace=True)
+
+    #and saving the DataFrame as a csv file
+    uni.to_csv(f"{path_to_output}/Persistence_{which_corpus}_all.csv")
 
