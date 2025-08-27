@@ -3,26 +3,24 @@ import re
 from tqdm import tqdm
 
 def lemma(which_corpus, path_to_input, destination):
-    """Function reads unigram-based file (produced by combiner) and outputs one HTML
-    file per interaction with all persistence highlighted depending on type (uni-, bi-, tri-, or quadrigram)."""
+    """Function reads unigram-based file (produced by persistence.combiner) and outputs one HTML
+    file per interaction with all cases of persistence highlighted depending on type (uni-, bi-, tri-, or quadrigram)."""
 
     #opening and reading unigram-based file with persistence information for all ngram levels
-    with open(f"{path_to_input}/Persistence_{which_corpus}_all.csv") as f:
-        
-        corpus = pd.read_csv(f, sep=",", index_col=0, na_filter=False)
+    corpus = pd.read_csv(f"{path_to_input}/Persistence_{which_corpus}_all.csv", sep=",", index_col=0, na_filter=False)
 
     #assigning type string to the column words (preventing e.g. "wahr" from being interpreted as Boolean and written as "WAHR" in the HTML output)
     corpus["word"] = corpus["word"].astype(str)
     
-    #initialising new column with empty string, to which words including relevant start and end tags will be concatenated
+    #initialising new column with empty string, to which words including relevant HTML start and end tags will be concatenated
     corpus["html_code"] = ""
 
     #defining start_doc which will commence each HTML file
-    #start_doc defines styles for all possible combinations of persistences on the four ngram levels,
-    #e.g. "TFTF"  (True False True False) means that the relevant token is a persistent unigram and
+    #start_doc defines styles for all possible combinations of cases of persistence on the four ngram levels,
+    #e.g., "TFTF" (True False True False) means that the relevant token is a persistent unigram and
     #part of a persistent trigram. This token will be wrapped with start and end tags specifying the
     #style TFTF which is blueviolet font color, font in bold, with a pink bottomline
-    #additionally it defines styles for e.g. subscript
+    #additionally it defines styles for, e.g., subscript
     start_doc = """<html>
         <head>
         <meta charset="utf-8">
@@ -65,7 +63,7 @@ def lemma(which_corpus, path_to_input, destination):
     #creating a set of interaction ids...
     interaction_ids = list(corpus["interaction_id"].unique())
 
-    #in case of RBC instructions are also part of the corpus, but we disregard them as they were not tagged for persistences
+    #in case of RBC, instructions are also part of the corpus, but these are disregarded as they were not tagged for persistence
     if which_corpus == "RBC":
         interaction_ids = [id_ for id_ in interaction_ids if not id_.startswith("Instructions")]
 
@@ -78,23 +76,26 @@ def lemma(which_corpus, path_to_input, destination):
         #creating a set of turn_ids...
         turn_ids = list(interaction_df["turn_id"].unique())
 
+        #only for VACC, extracting participant ids which will be written at the beginning of each HTML file
         if which_corpus == "VACC":
             participant_id = corpus[corpus["interaction_id"] == interaction_id]["participant_id"].unique()[0]
 
-        #each interaction will be concatenated into a string which will eventually be saved as HTML
+        #each interaction will gradually be concatenated into a string which will eventually be saved as HTML
         #the string begins with the start_doc, a header with the name of the corpus and the interaction id and a legend 
-        #detailing how persistences are highlighted
+        #detailing how cases of persistence are highlighted
         interaction_str = start_doc
 
+        #depending on the corpus, the beginning of the (visible) HTML content is concatenated to interaction_str
         if which_corpus == "VACC":
             interaction_str += f"<header>{which_corpus}, {interaction_id}, {participant_id}</header>"
         else:
             interaction_str += f"<header>{which_corpus}, {interaction_id}</header>"
 
-        #skipping if there are no persistences on any of the ngram levels in the given interaction
+        #skipping if there are no cases of persistence on any of the ngram levels in the given interaction
         if len(interaction_df["persistence_unigrams_lemma"].unique()) < 2 and len(interaction_df["persistence_bigrams_lemma"].unique()) < 2 and len(interaction_df["persistence_trigrams_lemma"].unique()) < 2 and len(interaction_df["persistence_quadrigrams_lemma"].unique()) < 2:
-            interaction_str += "NO PERSISTENCES TAGGED!</br>"
+            interaction_str += "NO CASES OF PERSISTENCE TAGGED!</br>"
 
+        #adding the legend to interaction_str
         interaction_str += """<lh_big><b>Legend: </b> <TFFF>Unigram</TFFF>, <FTFF><pp><sub>(</sub></pp>Bigram<pp><sub>)</sub></pp></FTFF>, <FFTF><pp><sub>[</sub></pp>Trigram<pp><sub>]</sub></pp></FFTF>, <FFFT><pp><sub>{</sub></pp>Quadrigram<pp><sub>}</sub></pp></FFFT></lh_big></br>"""
 
         #...to iterate over
@@ -107,31 +108,31 @@ def lemma(which_corpus, path_to_input, destination):
             interaction_str += f"<div class='turn'>{turn_id:>03} "
 
             #if the corpus is VACC and the turn's speaker is the confederate, then
-            #the whole turn is concatenated to the interaction_str, wrapped in the designated style (grayed out)
+            #the whole turn is concatenated to interaction_str, wrapped in the designated style (grayed out)
             if which_corpus == "VACC":
                 if turn_df.iloc[0]["speaker"] == "J":
                     interaction_str += "<span class='speaker-label'>Confederate:</span>"
                     interaction_str += " ".join([str(elem) for elem in turn_df["word"]]) + "</conf_turn></div><lh_small> </lh_small></br>"
-                    continue
+                    continue #continuing to next turn as no cases of persistence were tagged for confederate turns, hence there is nothing to highlight
 
-            #if the turn is uttered by the speaker, then "Human: ", wrapped in the designated style is concatenated to the interaction_str
+            #if the turn is uttered by the human speaker, then "Human:", wrapped in the designated style, is concatenated to interaction_str
             if turn_df.iloc[0]["speaker"] == "S":
                 interaction_str += "<span class='speaker-label'>Human:</span>"
-            #else if the turn is uttered by the voice assistant, then "Voice assistant: ", wrapped in the designated style is concatenated to the interaction_str
+            #else if the turn is uttered by the voice assistant, then "Voice assistant:", wrapped in the designated style, is concatenated to interaction_str
             elif turn_df.iloc[0]["speaker"] == "A":
                 interaction_str += "<span class='speaker-label'>Voice assistant:</span>"
 
             #iterating over the turn, token by token
             for i in range(len(turn_df)):
 
-                #saving (potential) persistences on each ngram level at the given token to four separate variables
+                #saving (potential) cases of persistence on each ngram level at the given token to four separate variables
                 uni = turn_df.iloc[i]["persistence_unigrams_lemma"]
                 bi = turn_df.iloc[i]["persistence_bigrams_lemma"]
                 tri = turn_df.iloc[i]["persistence_trigrams_lemma"]
                 quadri = turn_df.iloc[i]["persistence_quadrigrams_lemma"]
 
-                #creating a list of Boolean values, True if there is a persistence (saved as a string), False if there is no persistence (empty string)
-                ngrams = [uni != "", bi != "", tri != "", quadri != ""]
+                #creating a list of Boolean values, True if there is a persistence tag (saved as a string), False if there is no persistence tag (empty string)
+                ngrams = [uni != "", bi != "", tri != "", quadri != ""] #note that these aren't assignments but conditional statements yielding Boolean values!
                 #converting the list of Booleans into a tag string, e.g. TTTF for True, True, True, False
                 tag = "".join(str(elem)[0] for elem in ngrams)
             
@@ -140,26 +141,26 @@ def lemma(which_corpus, path_to_input, destination):
                 lemma = str(turn_df.iloc[i]["lemma"])
                 index = turn_df.iloc[i].name
 
-                """From here on, the HTML code is not directly added to the interaction_str, but first on a token basis
-                to the column 'html_code', which makes it easer to add further tags to a token (e.g. for overlapping tags)."""
+                """From here on, the HTML code is not directly added to interaction_str, but first on a token basis
+                to the column 'html_code', which makes it easer to add further tags to a token (e.g. in case of overlapping tags)."""
 
-                #if the tag is "FFFF", there are no persistences at the given word
+                #if the tag is "FFFF", there are no cases of persistence at the given word
                 #hence, the word is saved as-is to the column "html_code"
                 if tag == "FFFF":
                     corpus.loc[index, "html_code"] = word
-                #else it is saved enwrapped with the corresponding tag
+                #else it is saved enwrapped with the corresponding tag (which will trigger the corresponding HTML style)
                 else:
                    corpus.loc[index, "html_code"] = f"<{tag}>" + word + f"</{tag}>"
                 
                 #furthermore, boundaries for bi-, tri- and quadrigrams are marked, making it easier to see
                 #what belongs to what when tags are overlapping
 
-                #if the current token is tagged as a (part of a ) persistent bigram (or even of multiple as they may overlap)
+                #if the current token is tagged as a (part of a) persistent bigram (or even of multiple as they may overlap)
                 if bi != "": 
                     #as the column "html_code" is already filled and new tags now have to be inserted in the right place,
                     #the value is split into start_tag, embedded and end_tag
                     start_tag, embedded, end_tag = re.split(r"(\<[TF]{4}\>)(\S+)(\</[TF]{4}\>)", corpus.loc[index, "html_code"])[1:4]
-                    #the value is then modified, depending on whether the current word is tagged both as the start and end of a persistent bigram (overlapping persistence),
+                    #the value is then modified, depending on whether the current word is tagged both as the start and end of a persistent bigram (overlapping case of persistence),
                     #or whether it is just the start or just the end; depending on that the relevant new tags are inserted and combined with "start_tag", "embedded" and "end_tag"
                     if "start" in bi and "end" in bi:
                         corpus.loc[index, "html_code"] = start_tag + f"<pp><sub>(</sub></pp>" + embedded + f"<pp><sub>)</sub></pp>" + end_tag
@@ -168,12 +169,12 @@ def lemma(which_corpus, path_to_input, destination):
                     elif "end" in bi:
                         corpus.loc[index, "html_code"] = start_tag + embedded + f"<pp><sub>)</sub></pp>" + end_tag
 
-                #if the current token is tagged as a (part of a ) persistent trigram (or even of multiple as they may overlap)
+                #if the current token is tagged as a (part of a) persistent trigram (or even of multiple as they may overlap)
                 if tri != "": 
                     #as the column "html_code" is already filled and new tags now have to be inserted in the right place,
                     #the value is split into start_tag, embedded and end_tag
                     start_tag, embedded, end_tag = re.split(r"(\<[TF]{4}\>)(\S+)(\</[TF]{4}\>)", corpus.loc[index, "html_code"])[1:4]
-                    #the value is then modified, depending on whether the current word is tagged both as the start and end of a persistent trigram (overlapping persistence),
+                    #the value is then modified, depending on whether the current word is tagged both as the start and end of a persistent trigram (overlapping case of persistence),
                     #or whether it is just the start or just the end; depending on that the relevant new tags are inserted and combined with "start_tag", "embedded" and "end_tag"
                     if "start" in tri and "end" in tri:
                         corpus.loc[index, "html_code"] = start_tag + f"<pp><sub>[</sub></pp>" + embedded + f"<pp><sub>]</sub></pp>" + end_tag
@@ -182,12 +183,12 @@ def lemma(which_corpus, path_to_input, destination):
                     elif "end" in tri:
                         corpus.loc[index, "html_code"] = start_tag + embedded + f"<pp><sub>]</sub></pp>" + end_tag
 
-                #if the current token is tagged as a (part of a ) persistent quadrigram (or even of multiple as they may overlap)
+                #if the current token is tagged as a (part of a) persistent quadrigram (or even of multiple as they may overlap)
                 if quadri != "": 
                     #as the column "html_code" is already filled and new tags now have to be inserted in the right place,
                     #the value is split into start_tag, embedded and end_tag
                     start_tag, embedded, end_tag = re.split(r"(\<[TF]{4}\>)(\S+)(\</[TF]{4}\>)", corpus.loc[index, "html_code"])[1:4]                    
-                    #the value is then modified, depending on whether the current word is tagged both as the start and end of a persistent quadrigram (overlapping persistence),
+                    #the value is then modified, depending on whether the current word is tagged both as the start and end of a persistent quadrigram (overlapping case of persistence),
                     #or whether it is just the start or just the end; depending on that the relevant new tags are inserted and combined with "start_tag", "embedded" and "end_tag"
                     if "start" in quadri and "end" in quadri:
                         corpus.loc[index, "html_code"] = start_tag + "<pp><sub>{</sub></pp>" + embedded + "<pp><sub>}</sub></pp>" + end_tag
@@ -201,17 +202,17 @@ def lemma(which_corpus, path_to_input, destination):
                     start_tag, embedded, end_tag = re.split(r"(\<[TF]{4}\>)(\S+)(\</[TF]{4}\>)", corpus.loc[index, "html_code"])[1:4]                    
                     corpus.loc[index, "html_code"] = start_tag + embedded + f"<pp><sub>{lemma}</sub></pp>" + end_tag
 
-                #now the interaction_str is concatenated with the final column value
+                #now the interaction_str is concatenated with the final html_code column value
                 interaction_str += corpus.loc[index, "html_code"]
 
-                #the last step consists in bridging the gap between word using the correct style
-                #such that whitespace is enwrap with the style of the subsequent token
+                #the last step consists in bridging the gap between separate words using the correct style
+                #such that whitespace is also enwrapped with the style of the subsequent token
 
                 #the "null hyppothesis" is that the subsequent token is not tagged as persistent on any
                 #ngram level, hence its tag is "FFFF"
                 tag_after = "FFFF"
-                #however, if we are not at the very last token of a turn, we create a new "tag_after"
-                #by checking whether there are persistence on each of the ngram levels, again resulting in a four-letter tag
+                #however, unless it is the very word of a turn, creating a new "tag_after"
+                #by checking whether there are persistence tags on each of the ngram levels, again resulting in a four-letter tag
                 if i < len(turn_df)-1:
                     tag_after = ""
                     tag_after += str(turn_df.iloc[i+1]["persistence_unigrams_lemma"] != "")[0]
@@ -219,12 +220,12 @@ def lemma(which_corpus, path_to_input, destination):
                     tag_after += str(turn_df.iloc[i+1]["persistence_trigrams_lemma"] != "")[0]
                     tag_after += str(turn_df.iloc[i+1]["persistence_quadrigrams_lemma"] != "")[0]   
 
-                #if the tag_after is "FFFF", then the interaction_str is concatenated with style-less whitespace
+                #if the tag_after is "FFFF", then style-less whitespace is concatenated to interaction_str 
                 if tag_after == "FFFF":
                     interaction_str += " "
                 #else...
                 else:
-                    #a new_tag is initialized with "F" at the beginning for no unigram persistence as unigrams can never span more than one token
+                    #a new_tag is initialised with "F" at the beginning for no unigram persistence as unigrams can never span more than one token
                     new_tag = "F"
                     #if there are persistent bigrams both starting and ending or even just starting at the current token, "new_tag" receives a "T", else an "F"
                     if "start" in str(bi) and "end" in str(bi):
@@ -254,57 +255,78 @@ def lemma(which_corpus, path_to_input, destination):
                     #thus bridging the gap in the relevant style
                     interaction_str += f"<{new_tag}>" + " " + f"</{new_tag}>"
 
-            #after each turn, two line breaks are concatenated to the interaction_str
+            #after each turn, two line breaks are concatenated to interaction_str
             interaction_str += "</div><lh_small> </lh_small></br>"
+
         #and at the end of the interaction, the HTML body is closed
         interaction_str += "</body></br></html>"
 
-        #each interaction is saved as an HTML file to the desired location
+        #each interaction is saved as a separate HTML file to the desired location
         with open(f"{destination}/{interaction_id}.html", 'w', encoding='utf-8') as f:
             f.write(interaction_str)
 
 def inspect(levels, ngrams, threshold, which_corpus, path):
-    """Function outputs most frequent cases of persistence (above threshold) for all supplied levels in the given corpus"""
+    """Function outputs most frequent cases of persistence (above defined threshold) for all supplied levels in the given corpus"""
     
     print("Most Frequent Persistent N-Grams in Speaker Turns\n")
 
+    #iterating over ngram levels
     for ngram in ngrams:
         
+        #reading in corpus
         corpus = pd.read_csv(f"{path}/Persistence_{which_corpus}_{ngram}.csv", sep=",", index_col=0, na_filter=False)
         
+        #iterating over levels (lemmata, POS-tags etc.)
         for level in levels:
-            
-            if not f"persistence_{level}" in corpus.columns:
-                continue
-            
+
+            #filtering corpus for all lemmata tagged as persistent (only SPPs to avoid duplicates)
             persistent_ngrams = corpus[corpus[f"persistence_{level}"].str.contains("SPP")]
+
+            #counting how often each persistent ngram is found in the corpus
             most_frequent_ngrams = persistent_ngrams[f"persistence_{level}"].value_counts()
+
+            #filtering according to threshold (minimum occurrences of persistent ngrams)
             most_frequent_ngrams_top = dict(most_frequent_ngrams[most_frequent_ngrams >= threshold])
             
+            #informing if no cases of persistence were found above threshold
             if len(most_frequent_ngrams_top) == 0:
                 print(f"No persistent {level} {ngram} in speaker turns above {threshold}\n")
                 continue
                 
+            #structuring output
             print(f"{level.capitalize()} {ngram.capitalize()}\n")
 
-                
+            #if the level is lemma, the lemmata are outputted as is in descending order and nicely formatted                
             if level == "lemma":
                 for k, v in most_frequent_ngrams_top.items():
                     print(f"{k.split(':')[1].strip():45}{v:>3}")
-            else:
+            #if the level is the more abstract category of pos... 
+            elif level == "pos":
+                #...all realisations of each persistent pos ngram are identified and counted (e.g. , "Ich bin" and "Du bist" for "PPER VVFIN")
                 for pos_ngram in most_frequent_ngrams_top:
+
+                    #filtering corpus for given persistent pos ngram
                     realisations = persistent_ngrams[persistent_ngrams[f"persistence_{level}"] == pos_ngram]
+                    
+                    #counting its realisations in the "word" column
                     realisations_count = realisations["word"].value_counts() 
+                    
+                    #filtering according to threshold
                     realisations_count_top = dict(realisations_count[realisations_count > threshold])
                     
+                    #skipping if none make the threshold
                     if len(realisations_count_top) == 0:
                         continue
                     
+                    #informing about the pos ngram for which all relevant realisations are to be outputted
                     print(pos_ngram.split(':')[1].strip(), "\n")
                     
+                    #outputting all realisations for each persistent pos ngram
                     for k, v in realisations_count_top.items():
                         print(f"{k:45}{v:>3}")
                     
+                    #structuring output
                     print("\n")
 
+            #structuring output
             print("-------------------------------------------------\n")

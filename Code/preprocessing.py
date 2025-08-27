@@ -1,5 +1,6 @@
 import os, pandas as pd, csv, sys, re, time, numpy, json
 from pathlib import Path
+from tqdm import tqdm
 
 def file_creator_vacc(root_transcripts, root_speakers, output_destination):
     """Function takes paths to two directories and creates a csv file containing contents from the directories and its
@@ -200,7 +201,7 @@ def file_creator_rbc(root_transcripts, root_speakers, output_destination):
     
     #iterating over root_transcripts directory to append folder names as participant ids to corresponding list
     for directory in sorted(os.listdir(root_transcripts)):    
-        if directory == '.DS_Store':
+        if directory.startswith("."):
             continue    
         participant_ids.append(directory)
       
@@ -211,7 +212,7 @@ def file_creator_rbc(root_transcripts, root_speakers, output_destination):
 
         #as settings (not the letters, but the numbering) differ between participants, settings need to be appended to a new list for each participant
         for directory in sorted(os.listdir(root_transcripts + participant_id)):
-            if directory == '.DS_Store':
+            if directory.startswith("."):
                 continue 
             current_settings.append(directory)
 
@@ -565,7 +566,7 @@ def remap(file, tagger_output, tokens_for_remapping, output_destination, which_c
         k = 0
 
         #iterating over tokens_for_remapping
-        for i in range(len(tokens_for_remapping)):
+        for i in tqdm(range(len(tokens_for_remapping))):
 
             #if a new turn begins (marked by an element "NEW TURN!!")...
             if tokens_for_remapping[i] == "NEW TURN!!":
