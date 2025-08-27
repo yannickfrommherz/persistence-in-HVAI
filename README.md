@@ -13,7 +13,8 @@ The repository is structured as follows:
 - **Quantitative_Analysis** contains subfolders for the three alternation sets that were analysed quantitatively (Chapter 5), each comprising a notebook for annotation and data preparation, the resulting datasets and a notebook for modelling in R. While the annotation and data preparation notebooks can only be run once the data is available, the resulting datasets are abstract enough to be shared, allowing for the modelling notebook to be fully executable.
 - `environment.yml` can be used to recreate a `conda` environment with Python 13.3 and all needed packages in the correct version. Run the following lines in your command line:
     - Recreate the environment: `conda env create -f environment.yml`.
-    - Activate the environment: `conda activate hvai`
-    - Install a Jupyter kernel linked to the environment: `python -m ipykernel install --name=hvai --display-name "Persistence in HVAI"`
+    - Activate the environment: `conda activate hvai`.
+    - Install a Jupyter kernel linked to the environment: `python -m ipykernel install --name=hvai --display-name "Persistence in HVAI"`.
     - Select that kernel when opening any of the notebooks.
+
 📮 [Contact me](mailto:mail@yfrommherz.ch) for further information.
