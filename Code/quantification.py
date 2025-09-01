@@ -1,11 +1,12 @@
-import pandas as pd
-import numpy as np
-import warnings
-warnings.filterwarnings('ignore')
-import matplotlib.pyplot as plt
+import pandas as pd, numpy as np, warnings, matplotlib.pyplot as plt, plotly.graph_objects as go
+warnings.filterwarnings('ignore') 
 from IPython.display import display
 
 def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restrict=None, beta_variants=None, drop_conf=True):
+    """Function does x,y"""
+
+    #creating a separate column with id's for each token out of the index (needed below)
+    df["id"] = df.index
 
     #creating a DataFrame with all opportunities that the human speaker had (as the voice assistant is incapable of making choices)
     variation_sample = df[~(df[alternating]=="no")&(df.speaker=="S")].copy()
@@ -22,7 +23,7 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
     indices_CURRENT = variation_sample.id #extracting indices from column "id" for each CURRENT
     indices_CURRENT.reset_index(drop=True, inplace=True) #resetting index to allow for iteration over it below
 
-    """depending on arguments, initializing empty lists to save values for potentially influencing predictor variable
+    """depending on arguments, initialising empty lists to save values for potentially influencing predictor variable
     previous_variant represents the variant, if any, that was used at the previous opportunity ("NONE" if there was no previous use within the same interaction),
     previous_speaker represents who uttered previous_variant (if it exists), i.e., the human speaker or the voice assistant (or the confederate),
     previous_distance respresent the distance in tokens between CURRENT and previous_variant (if it exists),
@@ -93,7 +94,7 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
                     previous_beta_true_or_false[f'previous_beta_{variant}'].append(True)
 
         #quasi-persistence
-        quasi_persistence.append((twentyfive_last_tokens["quasi-persistence"] == True).any())
+        quasi_persistence.append((twentyfive_last_tokens["quasi_persistence"] == True).any())
 
         #turn length
         current_turn_id = df[df.id==indices_CURRENT[i]].turn_id.values[0]
@@ -130,7 +131,7 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
     if drop_conf == True:
         variation_sample = variation_sample.loc[variation_sample["PREVIOUS_SPEAKER"] != "J"]
 
-    #logarithmize distance measures, but leave 0 unchanged (otherwise it would result in infinity)
+    #logarithmise distance measures, but leave 0 unchanged (otherwise it would result in infinity)
     variation_sample["PREVIOUS_DISTANCE_LOG"] = np.where(variation_sample.PREVIOUS_DISTANCE > 0, np.log(variation_sample.PREVIOUS_DISTANCE), 0)    
 
     #drop irrelevant columns and reorder the relevant ones
@@ -142,6 +143,9 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
                             ["QUASI_PERSISTENCE", "HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"] 
 
     variation_sample = variation_sample.reindex(columns_to_keep, axis=1)
+
+    #modifying Umlaute, as R has trouble handling them, here only ö/Ö for "zwölf"
+    variation_sample.replace({"ö": "oe", "Ö": "OE"}, regex=True).to_csv("dezember_zwoelf_for_analysis.csv") 
 
     return variation_sample
 
@@ -236,3 +240,80 @@ def plot_switch_rate_over_variant_proportions(df, variation_sample, alternation_
 
     if save_to:
         plt.savefig(save_to)
+
+
+def create_sankey_diagram():
+    """Function does x,y"""
+
+    # Aggregate counts
+    flows = variation_sample.groupby(["PREVIOUS", "CURRENT"]).size().reset_index(name="count")
+
+    # Create a unique label list with each verb appearing twice (left and right side)
+    unique_verbs = sorted(set(flows["PREVIOUS"]).union(set(flows["CURRENT"])))
+    labels = [f"<i>{verb}</i> " for verb in unique_verbs] + [f"<i>{verb}</i>" for verb in unique_verbs]
+
+    # Assign stronger pastel colors
+    pastel_colors = [
+        "#A6CEE3", "#FDBF6F", "#B2DF8A", "#FB9A99", "#CAB2D6",
+        "#FFDDC1", "#F4A7C1", "#CFCFCF", "#FFFF99", "#B0E0E6"
+    ]
+    verb_colors = {verb: pastel_colors[i % len(pastel_colors)] for i, verb in enumerate(unique_verbs)}
+
+    # Map labels to indices
+    label_map = {label: i for i, label in enumerate(labels)}
+
+    # Define node colors (matching left and right)
+    node_colors = [verb_colors[verb.strip("<i></i>")] for verb in unique_verbs] * 2
+
+    # Identify self-loops
+    link_colors = ["#88808F" if prev == curr else "lightgray" for prev, curr in zip(flows["PREVIOUS"], flows["CURRENT"])]
+
+    # Adjust node positions to prevent skewing
+    y_positions = [i / len(unique_verbs) for i in range(len(unique_verbs))]
+    x_positions = [0] * len(unique_verbs) + [1] * len(unique_verbs)
+
+    # Create Sankey diagram
+    fig = go.Figure(go.Sankey(
+        arrangement="snap",
+        node=dict(
+            label=labels,
+            pad=20, thickness=25, color=node_colors,
+            x=x_positions, y=y_positions  # Adjust positions to prevent cutoffs
+        ),
+        link=dict(
+            source=[label_map[f"<i>{prev}</i> "] for prev in flows["PREVIOUS"]],
+            target=[label_map[f"<i>{curr}</i>"] for curr in flows["CURRENT"]],
+            value=flows["count"].tolist(),
+            color=link_colors
+        )
+    ))
+
+    # Adjust figure size and margins
+    fig.update_layout(
+        font=dict(size=14, family="Serif"),  # Ensuring LaTeX-style font
+        width=1000,  # Narrower
+        height=600,  # Taller to avoid cutoff
+        margin=dict(l=150, r=150, t=50, b=100)  # More space for labels
+    )
+
+    fig.update_layout(
+        annotations=[
+            dict(
+                x=0.05, y=-0.08, text="<span style='font-variant: small-caps;'>previous</span>", 
+                showarrow=False, font=dict(size=20, color="black"), xanchor="center"
+            ),
+            dict(
+                x=0.96, y=-0.08, text="<span style='font-variant: small-caps;'>current</span>", 
+                showarrow=False, font=dict(size=20, color="black"), xanchor="center"
+            )
+        ]
+    )
+
+    # Get unique verb positions from the label list
+    previous_positions = {verb: i / len(unique_verbs) for i, verb in enumerate(sorted(flows["PREVIOUS"].unique()))}
+    current_positions = {verb: i / len(unique_verbs) for i, verb in enumerate(sorted(flows["CURRENT"].unique()))}
+
+    # Export high-resolution PNG
+    #fig.write_image("../../../publication/further/images/sankey_plot_SCHEDULE.png", scale=4)
+
+    fig.show()
