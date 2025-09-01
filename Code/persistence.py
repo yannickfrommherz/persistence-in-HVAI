@@ -167,7 +167,7 @@ def tagger(corpus, which_corpus, levels, output_destination, instructions=[], st
     #saving DataFrame as csv file
     corpus.to_csv(output_destination, index=False)
 
-def combiner(path_to_input, path_to_output, which_corpus):
+def combiner(path_to_input, destination, which_corpus):
     """Function reads separately constructed files with tagged uni-, bi-, tri- and quadrigrams and unites all information into one file."""
 
     #opening and reading the files separately
@@ -329,5 +329,5 @@ def combiner(path_to_input, path_to_output, which_corpus):
     uni.drop(columns=["persistence_lemma"], inplace=True)
 
     #and saving the DataFrame as a csv file
-    uni.to_csv(f"{path_to_output}/Persistence_{which_corpus}_all.csv")
+    uni.to_csv(destination)
 

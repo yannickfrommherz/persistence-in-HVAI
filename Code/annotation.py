@@ -1,25 +1,22 @@
-import pandas as pd
+import pandas as pd, time, random
 from IPython.display import display, clear_output, HTML
-import time
-import random
 
-def alternation_check(df, alternation_set=[], alternation="alternating", custom_condition=None, labels={"y":"yes", "n":"no", "u":"unclear"}, window_leading=10, window_trailing=10):
+def alternation_check(df, alternation_set=[], alternation="alternating", labels={"y":"yes", "n":"no", "u":"unclear"}, window_leading=10, window_trailing=10):
+
+    df = df.copy()
 
     #saving user preference to be able to reset to them after temporarily increasing context size
     user_set_window_trailing, user_set_window_leading = window_trailing, window_leading
 
     #filtering df to only contain rows with lemmata which are in alternation_set 
     #and which haven't been annotated yet (i.e., df[alternation] is still empty)
-    if not custom_condition:
-        indices_to_check = df[(df.lemma.isin(alternation_set)) & (df[alternation].str.len() == 0)].index
-    else:
-        indices_to_check = df[custom_condition].index
+    indices_to_check = df[(df.lemma.isin(alternation_set)) & (df[alternation].isna())].index
 
     for i in indices_to_check:
 
         #if a context has already been annotated by way of identicality to another context
         #it will be skipped here
-        if len(df.loc[i, alternation]) > 1:
+        if pd.notna(df.loc[i, alternation]):
             continue
 
         while True:
@@ -28,11 +25,11 @@ def alternation_check(df, alternation_set=[], alternation="alternating", custom_
 
             display(HTML('<b>Annotationschema:</b> ' + '; '.join(f"'{key}': '{value}'" for key, value in labels.items()) + '<br>'))
             
-            indices_left = df[(df.index.isin(indices_to_check)) & (df[alternation].str.len() < 1)]
+            indices_left = df[(df.index.isin(indices_to_check)) & df[alternation].isna()]
 
             display(HTML(f"{len(indices_left)} left!"))
             
-            context = df.loc[i-window_leading:i+window_trailing, ["word", "speaker", "pos_coarse", "pos_finegrained", "interaction_id", alternation]]
+            context = df.loc[i-window_leading:i+window_trailing, ["word", "speaker", "interaction_id", alternation]]
 
             #save string context to check later whether the same context has been annotated before
             #makes sense for VA utterances as these often are the same
@@ -169,7 +166,7 @@ def display_context(df, alternation_set, column, alternative_condition=None, win
 
             indices_to_check.drop(i)
 
-            context = df.loc[i-window_leading:i+window_trailing, ["word", "lemma", "speaker", "pos_coarse", "pos_finegrained", "interaction_id"]]
+            context = df.loc[i-window_leading:i+window_trailing, ["word", "lemma", "speaker", "interaction_id"]]
 
             #stylying DataFrame
             context = context.style.apply(lambda val: ['background-color: darksalmon; font-weight: bold' if val.name == i else '' for _ in val], axis=1).applymap(
@@ -198,29 +195,6 @@ def display_context(df, alternation_set, column, alternative_condition=None, win
                 
                 break
 
-def tag_if_given_context(df, alternating, target_lemma, context_lemma, column, decision, window_leading, window_trailing, display_only=True):
-
-    c = 0
-    
-    for i in range(len(df)):
-
-        window = df[i-window_leading:i+window_trailing]
-        
-        if df.loc[i, column] == target_lemma and any(window[column] == context_lemma) and not df.loc[i, alternating] in ["yes", "no", "unclear"]:
-
-            c+=1
-
-            if display_only == True:
-                
-                display(window[["id", "word", "lemma", "speaker", alternating]])
-                
-                continue
-
-            df.loc[i, alternating] = decision
-            
-    print("Number of contexts:", c)
-    
-    return df
 
 
 
