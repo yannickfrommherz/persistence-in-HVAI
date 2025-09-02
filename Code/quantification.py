@@ -2,7 +2,7 @@ import pandas as pd, numpy as np, warnings, matplotlib.pyplot as plt, plotly.gra
 warnings.filterwarnings('ignore') 
 from IPython.display import display
 
-def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restrict=None, beta_variants=None, drop_conf=True):
+def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", include_quasi_p=False, restrict=None, beta_variants=None, drop_conf=True):
     """Function does x,y"""
 
     #creating a separate column with id's for each token out of the index (needed below)
@@ -33,9 +33,11 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
     previous_VA_variant represents the variant, if any, that the voice assistant used at the previous opportunity)
     """
 
-    #initializing empty lists to which the relevant values will be appended
-    previous_variant, previous_speaker, previous_distance, quasi_persistence, turn_length, with_conf = [], [], [], [], [], []
-    #previous_human_variant, previous_VA_variant = [], []
+    #initialising empty lists to which the relevant values will be appended
+    previous_variant, previous_speaker, previous_distance, turn_length, with_conf = [], [], [], [], []
+    
+    if include_quasi_p:
+        quasi_persistence = []
 
     #for beta persistence we check whether non-alterning instances of each variant appear in the 25 words prior to CURRENT
     #depending on the alternation set, some or all alternating variants may also non-alternate at times, hence rather than
@@ -94,7 +96,8 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
                     previous_beta_true_or_false[f'previous_beta_{variant}'].append(True)
 
         #quasi-persistence
-        quasi_persistence.append((twentyfive_last_tokens["quasi_persistence"] == True).any())
+        if include_quasi_p:
+            quasi_persistence.append((twentyfive_last_tokens["quasi_persistence"] == True).any())
 
         #turn length
         current_turn_id = df[df.id==indices_CURRENT[i]].turn_id.values[0]
@@ -116,9 +119,11 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
     variation_sample["PREVIOUS"] = previous_variant
     variation_sample["PREVIOUS_SPEAKER"] = previous_speaker
     variation_sample["PREVIOUS_DISTANCE"] = previous_distance
-    variation_sample["QUASI_PERSISTENCE"] = quasi_persistence
     variation_sample["TURN_LENGTH"] = turn_length
     variation_sample["CONFEDERATE"] = with_conf
+
+    if include_quasi_p:
+        variation_sample["QUASI_PERSISTENCE"] = quasi_persistence
 
     if not beta_variants == None:
         for variant in beta_variants:
@@ -136,11 +141,19 @@ def prepare_data_for_modeling(df, alternating, extract_lemma_from="lemma", restr
 
     #drop irrelevant columns and reorder the relevant ones
     if not beta_variants == None:
-        columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + [col.upper() for col in list(previous_beta_true_or_false.keys())] + \
+        if include_quasi_p:
+            columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + [col.upper() for col in list(previous_beta_true_or_false.keys())] + \
                             ["QUASI_PERSISTENCE", "HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"] 
+        else:
+            columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + [col.upper() for col in list(previous_beta_true_or_false.keys())] + \
+                            ["HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"]
     else:
-        columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + \
+        if include_quasi_p:
+            columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + \
                             ["QUASI_PERSISTENCE", "HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"] 
+        else: 
+            columns_to_keep = ["CURRENT", "PREVIOUS", "PREVIOUS_SPEAKER", "PREVIOUS_DISTANCE", "PREVIOUS_DISTANCE_LOG"] + \
+                            ["HUMAN_ID", "INTERACTION_ID", "TURN_LENGTH", "CONFEDERATE"] 
 
     variation_sample = variation_sample.reindex(columns_to_keep, axis=1)
 
@@ -241,8 +254,7 @@ def plot_switch_rate_over_variant_proportions(df, variation_sample, alternation_
     if save_to:
         plt.savefig(save_to)
 
-
-def create_sankey_diagram():
+def create_sankey_diagram(variation_sample):
     """Function does x,y"""
 
     # Aggregate counts
