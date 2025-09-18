@@ -1,0 +1,19 @@
+name: hvai-R
+channels:
+  - conda-forge
+dependencies:
+  - r-base=4.3
+  - r-irkernel
+  - jupyterlab
+  - r-lme4
+  - r-glue
+  - r-performance
+  - r-broom
+  - r-broom.mixed
+  - r-scales
+  - r-sjplot
+  - r-stargazer
+  - r-dplyr
+  - r-ggplot2
+  - r-tidyr
+  - r-readr
