@@ -1,6 +1,6 @@
 # Quantitative Analysis
 
-This directory is structured with regard to the different alternation sets examined as part of the quantitative analysis. There is one subdirectory for each: **DEZEMBER**, **NON-AGENTIVITY**, and **SCHEDULE**. 
+This directory is structured with regard to the different alternation sets examined as part of the quantitative analysis. There is one subdirectory for each alternation set: **DEZEMBER**, **NON-AGENTIVITY**, and **SCHEDULE**. 
 
 In each of them, there is one notebook for **annotation** and **preparation** of each given alternation set and corpus, named *annotation_preparation_{alternation_set}.ipynb*. Given that non-agentivity is annotated in multiple corpora, these notebooks are in corpus-specific subdirectories, the result of which is combined in *non-agentivity_all_corpoa.ipynb*. Apart from serving annotation and preparation, these notebooks also output relevant descriptive statistics for the given alternation set. 
 
