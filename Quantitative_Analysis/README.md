@@ -11,8 +11,8 @@ The datasets prepared for modelling – containing only choice contexts and rele
 If an alternation set is **modelled using logistic regression** (DEZEMBER and Non-agentivity), there also is a notebook named *modelling_{alternation_set}.ipynb*. These notebooks rely on R. `environment_R.yml` can be used to recreate a conda environment with R (version 4.3.3) and all needed libraries in the correct version. Run the following lines in your command line inside this directory of your cloned version of this repository:
 - Install `mamba` for quicker setup `conda install -n base -c conda-forge mamba`
 - Recreate the environment: `mamba env create -f environment-R.yml`.
-- Activate the environment: `mamba activate hvai-R`.
+- Activate the environment: `conda activate hvai-R`.
 - Install a Jupyter kernel linked to the environment: `R -e "IRkernel::installspec(name='hvai-R', displayname='R (hvai-R)', user=TRUE)"`.
-- Deactivate the environment: `mamba deactivate`
+- Deactivate the environment: `conda deactivate`
 - Launch JupyterLab from wherever it is installed: `jupyter lab`
 - Select the "hvai-r" kernel when opening any of the modelling notebooks.
