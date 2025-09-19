@@ -14,7 +14,7 @@ The repository is structured as follows:
 - Most code and notebooks rely on Python 13.3. `environment.yml` can be used to recreate a `conda` environment including all needed packages in the correct version. Run the following lines in your command line inside your cloned version of this repository:
     - Recreate the environment: `conda env create -f environment.yml`.
     - Activate the environment: `conda activate hvai`.
-    - Install a Jupyter kernel linked to the environment: `python -m ipykernel install --name=hvai --display-name "Persistence in HVAI"`.
+    - Install a Jupyter kernel linked to the environment: `python -m ipykernel install --user --name=hvai --display-name "Persistence in HVAI"`.
     - Select that kernel when opening any of the notebooks, except modelling notebooks.
 - The modelling notebooks rely on R (version 4.3.3). Follow the instruction in the README in "Quantitative_Analysis" to set up an environment for them.
 

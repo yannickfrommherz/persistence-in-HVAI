@@ -8,11 +8,4 @@ The annotation for any alternation set is saved in the corresponding corpus file
 
 The datasets prepared for modelling – containing only choice contexts and relevant variables – are saved in the subdirectory of the alternation set, named *{alternation_set}_for_modelling.csv*. 
 
-If an alternation set is **modelled using logistic regression** (DEZEMBER and Non-agentivity), there also is a notebook named *modelling_{alternation_set}.ipynb*. These notebooks rely on R. `environment_R.yml` can be used to recreate a conda environment with R (version 4.3.3) and all needed libraries in the correct version. Run the following lines in your command line inside this directory of your cloned version of this repository:
-- Install `mamba` for quicker setup `conda install -n base -c conda-forge mamba`
-- Recreate the environment: `mamba env create -f environment-R.yml`.
-- Activate the environment: `conda activate hvai-R`.
-- Install a Jupyter kernel linked to the environment: `R -e "IRkernel::installspec(name='hvai-R', displayname='R (hvai-R)', user=TRUE)"`.
-- Deactivate the environment: `conda deactivate`
-- Launch JupyterLab from wherever it is installed: `jupyter lab`
-- Select the "hvai-r" kernel when opening any of the modelling notebooks.
+If an alternation set is **modelled using logistic regression** (DEZEMBER and Non-agentivity), there also is a notebook named *modelling_{alternation_set}.ipynb*. These notebooks rely on R. As reproducing full R environments across platforms is notoriously tricky, no setup file is provided. Make sure you have an [R kernel in JupyterLab](https://irkernel.github.io/installation/) and install all packages needed in the notebooks ("lme4", "glue", "performance", "broom", "scales", "sjPlot", "ggplot2", "dplyr", "stargazer", "broom.mixed", "car").
