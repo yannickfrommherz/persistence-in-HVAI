@@ -1,6 +1,6 @@
 # Persistence in Human-Voice Assistant Interaction
 
-This repository contains reproducible scripts and notebooks from my doctoral thesis. Note that for data protection restrictions the three corpora have to be requested from Ingo Siegert. However, for comprehensibility, a small dummy dataset is supplied, allowing for the code to be executed even without the actual data.
+This repository contains reproducible scripts and notebooks from my doctoral thesis. Note that for data protection restrictions the three corpora have to be requested from [Ingo Siegert](https://www.iikt.ovgu.de/-p-4522.html). However, for comprehensibility, a small dummy dataset is supplied, allowing for the code to be executed even without the actual data.
 
 ## Structure
 
